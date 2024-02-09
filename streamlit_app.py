@@ -28,7 +28,8 @@ def main():
     if uploaded_file is not None:
         # Display the grayscale image
         grayscale_image = Image.open(uploaded_file)
-        st.image(grayscale_image, caption='Uploaded Grayscale Image', use_column_width=True)
+        w, h = grayscale_image.size
+        st.image(grayscale_image, caption='Uploaded Grayscale Image', use_column_width='auto')
 
         # Colorize the grayscale image
         if st.button('Colorize'):
@@ -44,7 +45,8 @@ def main():
             colorized_image = create_rgb_image(Y_channel, tf.reshape(generated_UV, (256,256,2)))
             colorized_image = colorized_image*255
             colorized_image = Image.fromarray(np.uint8(colorized_image))
-            st.image(colorized_image, caption='Colorized Image', use_column_width=True)
+            colorized_image  = colorized_image.resize((w,h))
+            st.image(colorized_image, caption='Colorized Image', use_column_width='auto')
 
 if __name__ == "__main__":
     main()
