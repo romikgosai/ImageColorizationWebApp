@@ -16,7 +16,7 @@ def create_rgb_image(y_channel, uv_channel):
     rgb_image = tf.image.yuv_to_rgb(tf.concat([y_channel, u_channel, v_channel], axis=-1))
     return rgb_image
 
-gen = load_model('.\gen.h5')
+gen = load_model('./gen.h5')
 
 # Main function to run the Streamlit app
 def main():
