@@ -3,14 +3,42 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+import cv2
+
+def median_filter_2d(image, kernel_size=3):
+    """
+    Applies a 2D median filter to a multi-channel image.
+
+    Args:
+        image (numpy.ndarray): Input image with shape (height, width, channels).
+        kernel_size (int): Size of the median filter kernel (odd value).
+
+    Returns:
+        numpy.ndarray: Filtered image with the same shape as the input.
+    """
+    if kernel_size % 2 == 0:
+        raise ValueError("Kernel size must be an odd value.")
+
+    # Initialize an empty output image
+    filtered_image = np.zeros_like(image)
+
+    # Iterate over each channel
+    for channel in range(image.shape[2]):
+        filtered_image[:, :, channel] = cv2.medianBlur(image[:, :, channel], kernel_size)
+
+    return filtered_image
 
 def colorize(Y_original, Y_channel,gen,w,h):
     generated_UV = gen(tf.reshape(Y_channel, (1,256,256,1)))
+    # generated_UV = tf.convert_to_tensor(median_filter_2d((generated_UV).numpy().reshape(256,256,2), 3))
     generated_UV = tf.image.resize(generated_UV,(h,w))
+    
     # st.text(generated_UV.shape)
     # st.text(Y_original.shape)
     colorized_image = create_rgb_image(Y_original, tf.reshape(generated_UV,(h,w,2)))
     colorized_image = colorized_image*255
+    # colorized_image = cv2.medianBlur(colorized_image.numpy(),3)
+
     colorized_image = Image.fromarray(np.uint8(colorized_image))
     return colorized_image
 # Function to create YUV image from Y, U, and V channels and then convert to rgb
@@ -36,9 +64,9 @@ def main():
     if uploaded_file is not None:
         # Display the grayscale image
         grayscale_image = Image.open(uploaded_file)
+        grayscale = grayscale_image.convert("L")
+        st.image(grayscale, caption='Uploaded Grayscale Image', use_column_width='auto')
         w, h = grayscale_image.size
-        st.image(grayscale_image, caption='Uploaded Grayscale Image', use_column_width='auto')
-        grayscale_image = Image.open(uploaded_file)
         img_to_tensor = tf.convert_to_tensor(grayscale_image)/255
         yuv_image = tf.image.rgb_to_yuv(img_to_tensor)
         # Separate LAB into L and AB components
